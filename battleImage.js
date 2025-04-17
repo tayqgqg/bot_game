@@ -7,13 +7,12 @@ registerFont('./assets/ComicNeue-Regular.ttf', { family: 'ComicNeue' });
 
 // Gambar monster berdasarkan nama
 const monsterImages = {
-  Goblin: 'https://i.imgur.com/sJRR5eg.png',
-  Slime: 'https://i.imgur.com/W3yyYbN.png',
-  Orc: 'https://i.imgur.com/Lb7xOOn.png'
+  Goblin: 'https://i.imgur.com/3hHj66x.png',
+  Slime: 'https://i.imgur.com/oHR3Izi.png',
+  Orc: 'https://i.imgur.com/VqO0jzE.png'
 };
 
-// Gambar player tetap
-const playerImage = 'https://i.imgur.com/zUvV8lK.png';
+const playerImage = 'https://i.imgur.com/6RLwS3u.png';
 
 async function generateBattleImage(player, monster, playerAttack, monsterAttack, playerHP) {
   const width = 700;
