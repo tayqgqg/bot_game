@@ -1,64 +1,70 @@
 const { createCanvas, loadImage, registerFont } = require('canvas');
-const { AttachmentBuilder } = require('discord.js');
 const fs = require('fs');
+const path = require('path');
 
-// Daftarkan font lucu
-registerFont('./assets/ComicNeue-Regular.ttf', { family: 'ComicNeue' });
+// Kalau kamu punya font sendiri, kamu bisa uncomment dan sesuaikan
+// registerFont(path.join(__dirname, 'fonts', 'funny.ttf'), { family: 'FunnyFont' });
 
-// Gambar monster berdasarkan nama
-const monsterImages = {
-  Goblin: 'https://i.imgur.com/3hHj66x.png',
-  Slime: 'https://i.imgur.com/oHR3Izi.png',
-  Orc: 'https://i.imgur.com/VqO0jzE.png'
-};
-
-const playerImage = 'https://i.imgur.com/6RLwS3u.png';
-
-async function generateBattleImage(player, monster, playerAttack, monsterAttack, playerHP) {
-  const width = 700;
-  const height = 300;
-  const canvas = createCanvas(width, height);
+async function generateBattleImage(player, monster, playerAttack, monsterAttack, remainingHP) {
+  const canvas = createCanvas(700, 300);
   const ctx = canvas.getContext('2d');
 
-  // Latar
-  ctx.fillStyle = '#f0f8ff';
-  ctx.fillRect(0, 0, width, height);
+  // Background color
+  ctx.fillStyle = '#fef4d7';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Judul
-  ctx.fillStyle = '#333';
-  ctx.font = '24px ComicNeue';
-  ctx.fillText('⚔️ PERTARUNGAN!', 260, 40);
+  // Box outline
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
-  // Load gambar
-  const playerImg = await loadImage(playerImage);
-  const monsterImg = await loadImage(monsterImages[monster.name] || monsterImages['Goblin']);
+  // Gambar player dan monster (gunakan gambar default bawaan)
+  const playerImg = await loadSafeImage(path.join(__dirname, 'assets', 'player.png'));
+  const monsterImg = await loadSafeImage(path.join(__dirname, 'assets', 'monster.png'));
 
-  // Gambar
-  ctx.drawImage(playerImg, 50, 100, 160, 160);
-  ctx.drawImage(monsterImg, 470, 100, 160, 160);
+  // Player image
+  if (playerImg) ctx.drawImage(playerImg, 50, 80, 100, 100);
+  else drawBox(ctx, 50, 80, 100, 100, 'blue', 'Player');
 
-  // Info Player
-  ctx.fillStyle = '#222';
-  ctx.font = '20px ComicNeue';
-  ctx.fillText(`🧙 ${player.name}`, 50, 80);
-  ctx.fillText(`Serangan: ${playerAttack}`, 50, 265);
-  ctx.fillText(`❤️ HP: ${playerHP}`, 50, 290);
+  // Monster image
+  if (monsterImg) ctx.drawImage(monsterImg, 550, 80, 100, 100);
+  else drawBox(ctx, 550, 80, 100, 100, 'red', monster.name);
 
-  // Info Monster
-  ctx.fillText(`👹 ${monster.name}`, 470, 80);
-  ctx.fillText(`Serangan: ${monsterAttack}`, 470, 265);
+  // Text
+  ctx.fillStyle = '#000';
+  ctx.font = '20px sans-serif';
 
-  // Simpan gambar
+  ctx.fillText(`${player.name} menyerang ${monster.name} (-${playerAttack})`, 200, 120);
+  ctx.fillText(`${monster.name} menyerang kembali (-${monsterAttack})`, 200, 150);
+  ctx.fillText(`❤️ Sisa HP: ${remainingHP}`, 200, 180);
+
+  // Simpan sebagai PNG
   const buffer = canvas.toBuffer('image/png');
   fs.writeFileSync('./battle_result.png', buffer);
 }
 
-// Attachment untuk Discord
-function getBattleAttachment() {
-  return new AttachmentBuilder('./battle_result.png');
+// Gambar fallback kalau gambar tidak ada
+function drawBox(ctx, x, y, w, h, color, label) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px sans-serif';
+  ctx.fillText(label, x + 10, y + h / 2);
 }
 
-module.exports = {
-  generateBattleImage,
-  getBattleAttachment
-};
+// Load gambar dengan aman
+async function loadSafeImage(filePath) {
+  try {
+    if (fs.existsSync(filePath)) {
+      return await loadImage(filePath);
+    } else {
+      console.warn(`Gambar tidak ditemukan: ${filePath}`);
+      return null;
+    }
+  } catch (err) {
+    console.error(`Gagal load gambar: ${filePath}`, err);
+    return null;
+  }
+}
+
+module.exports = { generateBattleImage };
