@@ -1,7 +1,8 @@
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const { AttachmentBuilder } = require('discord.js');
 const fs = require('fs');
 
-// Daftarkan font lucu
+// Daftarkan font custom
 registerFont('./assets/ComicNeue-Regular.ttf', { family: 'ComicNeue' });
 
 async function generateBattleImage(player, monster, playerAttack, monsterAttack, playerHP) {
@@ -10,7 +11,7 @@ async function generateBattleImage(player, monster, playerAttack, monsterAttack,
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
 
-  // Background
+  // Latar
   ctx.fillStyle = '#f0f8ff';
   ctx.fillRect(0, 0, width, height);
 
@@ -19,13 +20,11 @@ async function generateBattleImage(player, monster, playerAttack, monsterAttack,
   ctx.font = '24px ComicNeue';
   ctx.fillText('⚔️ PERTARUNGAN!', 260, 40);
 
-  // Gambar monster (contoh lucu)
+  // Gambar monster & player
   const monsterImg = await loadImage('https://i.imgur.com/YIqfDuh.png');
-  ctx.drawImage(monsterImg, 450, 100, 200, 160);
-
-  // Gambar player (contoh lucu)
   const playerImg = await loadImage('https://i.imgur.com/3r8YvNd.png');
   ctx.drawImage(playerImg, 50, 100, 160, 160);
+  ctx.drawImage(monsterImg, 450, 100, 200, 160);
 
   // Info Player
   ctx.fillStyle = '#222';
@@ -38,9 +37,17 @@ async function generateBattleImage(player, monster, playerAttack, monsterAttack,
   ctx.fillText(`👹 ${monster.name}`, 450, 80);
   ctx.fillText(`Serangan: ${monsterAttack}`, 450, 260);
 
-  // Simpan ke file
+  // Simpan gambar ke file
   const buffer = canvas.toBuffer('image/png');
   fs.writeFileSync('./battle_result.png', buffer);
 }
 
-module.exports = { generateBattleImage };
+// Ekspor fungsi dan file untuk dikirim ke Discord
+function getBattleAttachment() {
+  return new AttachmentBuilder('./battle_result.png');
+}
+
+module.exports = {
+  generateBattleImage,
+  getBattleAttachment
+};
