@@ -100,8 +100,11 @@ client.on('messageCreate', async (message) => {
     }
 
     savePlayerData();
-    message.channel.send(result);
+    if (result.trim() !== '') {
+      message.channel.send(result);
+    }
   }
 });
 
+client.login(process.env.DISCORD_TOKEN);
 client.login(process.env.DISCORD_TOKEN);
