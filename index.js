@@ -1,9 +1,16 @@
 const { Client, GatewayIntentBits } = require('discord.js');
 const fs = require('fs');
 require('dotenv').config();
-const { generateBattleImage } = require('./battleImage');
+const { generateBattleImage, getBattleAttachment } = require('./battleImage');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
+
 let players = {};
 
 function loadPlayerData() {
@@ -25,7 +32,7 @@ function getPlayer(id, username) {
 }
 
 client.once('ready', () => {
-  console.log(`Bot online as ${client.user.tag}`);
+  console.log(`Bot online sebagai ${client.user.tag}`);
   loadPlayerData();
 });
 
@@ -68,15 +75,16 @@ client.on('messageCreate', async (message) => {
     const monster = monsters[Math.floor(Math.random() * monsters.length)];
 
     let monsterHP = monster.hp;
-    let playerAttack = Math.floor(Math.random() * 20) + 5;
-    let monsterAttack = monster.attack;
+    const playerAttack = Math.floor(Math.random() * 20) + 5;
+    const monsterAttack = monster.attack;
 
     monsterHP -= playerAttack;
     player.hp -= monsterAttack;
     if (player.hp < 0) player.hp = 0;
 
     await generateBattleImage(player, monster, playerAttack, monsterAttack, player.hp);
-    message.channel.send({ content: '⚔️ Hasil Pertarungan:', files: ['./battle_result.png'] });
+    const imageAttachment = getBattleAttachment();
+    await message.channel.send({ content: '⚔️ Hasil Pertarungan:', files: [imageAttachment] });
 
     let result = '';
 
@@ -100,11 +108,8 @@ client.on('messageCreate', async (message) => {
     }
 
     savePlayerData();
-    if (result.trim() !== '') {
-      message.channel.send(result);
-    }
+    message.channel.send(result);
   }
 });
 
-client.login(process.env.DISCORD_TOKEN);
 client.login(process.env.DISCORD_TOKEN);
